@@ -315,11 +315,12 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
         if (this.size != other.size) {
             return false;
         }
-        
+        // Usar el iterador provee deteccion de modificaciones concurrentes
+        // durante el recorrido.
         Iterator it = iterator();
         Iterator otherIt = other.iterator();
         while(it.hasNext()){
-            if(it.next().equals(otherIt.next())){
+            if(!it.next().equals(otherIt.next())){
                 return false;
             }
         }        
