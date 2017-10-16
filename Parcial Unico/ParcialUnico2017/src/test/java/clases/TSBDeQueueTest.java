@@ -472,7 +472,5 @@ public class TSBDeQueueTest {
         assertNotEquals(empty.hashCode(), instance.hashCode());
         // Si equals() es true, el hashCode debe ser el mismo.
         assertEquals(instance.hashCode(), instance2.hashCode());
-        // Un hashcode siempre debe ser mayor a 0.
-        assertNotEquals(0, empty.hashCode());
     }
 }
