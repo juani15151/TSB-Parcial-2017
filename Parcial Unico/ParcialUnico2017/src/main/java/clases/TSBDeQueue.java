@@ -13,13 +13,22 @@ import java.util.NoSuchElementException;
  * Implementacion propia de java.util.ArrayDeque.
  *
  * No admite null.
- *
+ * No detecta overflows cuando el tamaño de la cola crece demasiado.
+ * 
  * @author juani
  * @param <E>
  */
 public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Serializable, Cloneable {
 
+    /**
+     * La capacidad por defecto del arreglo.
+     */
     private static final int DEFAULT_CAPACITY = 16;
+    
+    /**
+     * El espacio que se dejará libre al reducir el tamaño del arreglo.
+     */
+    private static final int REMOVE_MARGIN = 8;
 
     protected Object[] items;
     protected int size;
@@ -140,9 +149,14 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
         return old;
     }
 
+    /**
+     * Elimina el elemento en la posicion indicada y reacomoda el arreglo.
+     * @param index - el indice del elemento a eliminar.
+     */
     private void removeAt(int index) {
         requireValidIndex(index);
         System.arraycopy(items, index + 1, items, index, --size - index);
+        modCount++;
         trimCapacity();
     }
 
@@ -154,7 +168,7 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
     private void trimCapacity() {
         if (items.length >= size * 2) {
             if (size > DEFAULT_CAPACITY) {
-                Object[] replacement = new Object[(items.length / 2) + 8];
+                Object[] replacement = new Object[size + REMOVE_MARGIN];
                 System.arraycopy(items, 0, replacement, 0, size);
                 items = replacement;
             }
@@ -209,6 +223,13 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
         return o == null ? false : removeOccurrence(o, it);
     }
 
+    /**
+     * Recorre la cola con un iterador dado y borra la primer ocurrencia de un
+     * objeto.
+     * @param o - el objeto que se desea eliminar.
+     * @param it - el iterador a utilizar.
+     * @return true si el objeto fue encontrado y eliminado.
+     */
     private boolean removeOccurrence(Object o, Iterator it) {
         E element;
         try {
@@ -335,8 +356,6 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
             if (nextItemIndex == size) {
                 throw new NoSuchElementException();
             }
-            // Detecta inserciones y eliminaciones concurrentes,
-            // pero no modificaciones.
             if (modCount != expectedModCount) {
                 throw new ConcurrentModificationException();
             }
@@ -380,8 +399,6 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
             if (currentItemIndex == 0) {
                 throw new NoSuchElementException();
             }
-            // Detecta inserciones y eliminaciones concurrentes,
-            // pero no modificaciones.
             if (modCount != expectedModCount) {
                 throw new ConcurrentModificationException();
             }
