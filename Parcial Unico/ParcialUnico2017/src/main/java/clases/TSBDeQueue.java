@@ -319,7 +319,7 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
         Iterator it = iterator();
         Iterator otherIt = other.iterator();
         while(it.hasNext()){
-            if(it.next() != otherIt.next()){
+            if(it.next().equals(otherIt.next())){
                 return false;
             }
         }        
