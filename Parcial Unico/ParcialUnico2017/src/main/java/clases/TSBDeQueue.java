@@ -19,31 +19,40 @@ import java.util.NoSuchElementException;
  */
 public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Serializable, Cloneable {
 
-    private static final int DEFAULT_ARRAY_LENGHT = 16;
+    private static final int DEFAULT_CAPACITY = 16;
 
     protected Object[] items;
     protected int size;
+    protected int modCount;
 
     public TSBDeQueue() {
-        this(DEFAULT_ARRAY_LENGHT);
+        this(DEFAULT_CAPACITY);
     }
 
-    public TSBDeQueue(int initialCapacity) {
-        if (initialCapacity <= 0) {
-            initialCapacity = DEFAULT_ARRAY_LENGHT;
+    public TSBDeQueue(int capacity) {
+        if (capacity <= 0) {
+            capacity = DEFAULT_CAPACITY;
         }
-        items = new Object[initialCapacity];
+        items = new Object[capacity];
         size = 0;
+        modCount = 0;
     }
 
     public TSBDeQueue(Collection<? extends E> c) {
+        // TODO: Habria que verificar que c no contenga nulls.
         this.items = c.toArray();
         size = c.size();
+        modCount = 0;
     }
 
     @Override
     public int size() {
         return size;
+    }
+
+    private void set(int index, E element) {
+        modCount++;
+        items[index] = element;
     }
 
     /**
@@ -56,74 +65,55 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
      */
     @Override
     public boolean add(E e) {
-        addLast(e);
-        return true;
+        return offerLast(e);
     }
 
     @Override
     public void addFirst(E e) {
-        exceptOnNull(e);
-        // TODO: Para optimizar: Si hay que agrandar el arreglo se hacen 2
-        //       llamadas a System.arraycopy seguidas.
-        ensureAddCapacity();
-        System.arraycopy(items, 0, items, 1, size++);
-        items[0] = e;
+        offerFirst(e);
     }
 
     @Override
     public void addLast(E e) {
-        exceptOnNull(e);
-        ensureAddCapacity();
-        items[size++] = e;
+        offerLast(e);
     }
-    
-    private void exceptOnNull(Object o){
-        if (o == null){
+
+    private void requireNotNull(Object o) {
+        if (o == null) {
             throw new NullPointerException();
         }
     }
-    
+
     public void ensureCapacity(int minCapacity) {
         if (items.length >= minCapacity) {
             return;
         }
-        setCapacity(minCapacity);
-    }
-
-    /**
-     * Asegura que haya espacio para agregar un elemento. Si no lo hay agranda
-     * el array de items.
-     */
-    private void ensureAddCapacity() {
-        if (size == items.length) {
-            setCapacity(items.length * 2);
-        }
-    }
-
-    /**
-     * Aumenta o disminuye el tamaño del array de items. Si la capacidad
-     * solicitada es menor que la cantidad de elementos actual no hace nada.
-     *
-     * @param newCapacity - la capacidad solicitada
-     */
-    private void setCapacity(int newCapacity) {
-        if (newCapacity < size) {
-            return;
-        }
-        Object[] replacement = new Object[newCapacity];
+        Object[] replacement = new Object[minCapacity];
         System.arraycopy(items, 0, replacement, 0, size);
         items = replacement;
     }
 
     @Override
     public boolean offerFirst(E e) {
-        addFirst(e);
+        requireNotNull(e);
+
+        if (size == items.length) {
+            ensureCapacity(items.length * 2);
+        }
+        
+        System.arraycopy(items, 0, items, 1, size++);
+        set(0, e);
         return true;
     }
 
     @Override
     public boolean offerLast(E e) {
-        addLast(e);
+        requireNotNull(e);
+        
+        if (size == items.length) {
+            ensureCapacity(items.length * 2);
+        }
+        set(size++, e);
         return true;
     }
 
@@ -134,6 +124,7 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
         }
         E old = (E) items[0];
         System.arraycopy(items, 1, items, 0, --size);
+        modCount++;
         trimCapacity();
         return old;
     }
@@ -143,10 +134,16 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
         if (size == 0) {
             throw new NoSuchElementException();
         }
-        E old = (E) items[size - 1];
-        size--;
+        E old = (E) items[--size];
+        modCount++;
         trimCapacity();
         return old;
+    }
+
+    private void removeAt(int index) {
+        requireValidIndex(index);
+        System.arraycopy(items, index + 1, items, index, --size - index);
+        trimCapacity();
     }
 
     /**
@@ -156,26 +153,22 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
      */
     private void trimCapacity() {
         if (items.length >= size * 2) {
-            if (size > DEFAULT_ARRAY_LENGHT) {
-                setCapacity(size + (int) (DEFAULT_ARRAY_LENGHT / 2));
+            if (size > DEFAULT_CAPACITY) {
+                Object[] replacement = new Object[(items.length / 2) + 8];
+                System.arraycopy(items, 0, replacement, 0, size);
+                items = replacement;
             }
         }
     }
 
     @Override
     public E pollFirst() {
-        if (size == 0) {
-            return null;
-        }
-        return removeFirst();
+        return size == 0 ? null : removeFirst();
     }
 
     @Override
     public E pollLast() {
-        if (size == 0) {
-            return null;
-        }
-        return removeLast();
+        return size == 0 ? null : removeLast();
     }
 
     @Override
@@ -196,47 +189,35 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
 
     @Override
     public E peekFirst() {
-        if (size == 0) {
-            return null;
-        }
-        return (E) items[0];
+        return size == 0 ? null : (E) items[0];
     }
 
     @Override
     public E peekLast() {
-        if (size == 0) {
-            return null;
-        }
-        return (E) items[size - 1];
+        return size == 0 ? null : (E) items[size - 1];
     }
 
     @Override
     public boolean removeFirstOccurrence(Object o) {
-        if (o == null) {
-            return false;
-        }
-        try {
-            return removeOccurrence((E) o, iterator());
-        } catch (ClassCastException e) {
-            return false;
-        }
+        Iterator it = iterator();
+        return o == null ? false : removeOccurrence(o, it);
     }
 
     @Override
     public boolean removeLastOccurrence(Object o) {
-        if (o == null) {
-            return false;
-        }
-        try {
-            return removeOccurrence((E) o, descendingIterator());
-        } catch (ClassCastException e) {
-            return false;
-        }
+        Iterator it = descendingIterator();
+        return o == null ? false : removeOccurrence(o, it);
     }
 
-    private boolean removeOccurrence(E e, Iterator it) {
+    private boolean removeOccurrence(Object o, Iterator it) {
+        E element;
+        try {
+            element = (E) o;
+        } catch (ClassCastException err) {
+            return false; // El objeto es de otro tipo, no esta en la lista.
+        }
         while (it.hasNext()) {
-            if (e.equals(it.next())) {
+            if (element.equals(it.next())) {
                 it.remove();
                 return true;
             }
@@ -244,12 +225,10 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
         return false;
     }
 
-    private void removeAt(int index) {
+    private void requireValidIndex(int index) {
         if (index < 0 || index >= size) {
             throw new IndexOutOfBoundsException();
         }
-        System.arraycopy(items, index + 1, items, index, size - 1 - index);
-        size--;
     }
 
     @Override
@@ -337,12 +316,12 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
 
         int nextItemIndex;
         int currentItemIndex;
-        int expectedSize;
+        int expectedModCount;
 
         public AscendingIterator() {
             nextItemIndex = 0;
             currentItemIndex = -1;
-            expectedSize = size;
+            expectedModCount = modCount;
         }
 
         @Override
@@ -358,7 +337,7 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
             }
             // Detecta inserciones y eliminaciones concurrentes,
             // pero no modificaciones.
-            if (items[nextItemIndex] == null || size != expectedSize) {
+            if (modCount != expectedModCount) {
                 throw new ConcurrentModificationException();
             }
             currentItemIndex = nextItemIndex++;
@@ -374,7 +353,7 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
             }
             removeAt(currentItemIndex);
             currentItemIndex = -1;
-            expectedSize--;
+            expectedModCount++;
         }
 
     }
@@ -383,12 +362,12 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
 
         int currentItemIndex;
         int nextItemIndex;
-        int expectedSize;
+        int expectedModCount;
 
         public DescendingIterator() {
             currentItemIndex = -1;
             nextItemIndex = size - 1;
-            expectedSize = size;
+            expectedModCount = modCount;
         }
 
         @Override
@@ -403,7 +382,7 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
             }
             // Detecta inserciones y eliminaciones concurrentes,
             // pero no modificaciones.
-            if (size != expectedSize || items[nextItemIndex] == null) {
+            if (modCount != expectedModCount) {
                 throw new ConcurrentModificationException();
             }
             currentItemIndex = nextItemIndex--;
@@ -419,8 +398,8 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
             }
             removeAt(currentItemIndex);
             currentItemIndex = -1;
-            expectedSize--;
+            expectedModCount++;
         }
 
-    }    
+    }
 }

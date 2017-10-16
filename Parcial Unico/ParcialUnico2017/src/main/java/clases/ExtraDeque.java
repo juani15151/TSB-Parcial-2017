@@ -19,6 +19,7 @@ public class ExtraDeque<E> extends TSBDeQueue<E> implements Serializable {
     public void clear() {
         items = new Object[items.length];
         size = 0;
+        modCount++;
     }
 
     /**
@@ -54,6 +55,7 @@ public class ExtraDeque<E> extends TSBDeQueue<E> implements Serializable {
                 v[j] = y;
                 i++;
                 j--;
+                modCount++;
             }
         } while (i <= j);
         if (izq < j) {
