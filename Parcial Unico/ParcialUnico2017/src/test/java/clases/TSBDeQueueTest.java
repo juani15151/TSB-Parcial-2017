@@ -1,6 +1,7 @@
 package clases;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import org.junit.After;
@@ -129,6 +130,29 @@ public class TSBDeQueueTest {
         assertEquals(0, empty.size());
     }
 
+    /**
+     * Test OPCIONAL, iteradores con deteccion de modificaciones concurrentes. 
+     * Son conocidos como iteradores fail-fast.
+     */
+    @org.junit.Test (expected = ConcurrentModificationException.class)
+    public void testIteratorConcurrency(){
+        Iterator i1;
+        i1 = instance.iterator();
+        instance.remove();
+        i1.next();
+    }
+    /**
+     * Test OPCIONAL, iteradores con deteccion de modificaciones concurrentes. 
+     * Son conocidos como iteradores fail-fast.
+     */
+    @org.junit.Test (expected = ConcurrentModificationException.class)
+    public void testDescendingIteratorConcurrency(){
+        Iterator i1;
+        i1 = instance.descendingIterator();
+        instance.remove();
+        i1.next();
+    }
+    
     /**
      * Test of addFirst method, of class TSBDeQueue.
      */
@@ -446,6 +470,8 @@ public class TSBDeQueueTest {
     public void testhashCode() {
         System.out.println("hashCode");
         assertNotEquals(empty.hashCode(), instance.hashCode());
+        // Si equals() es true, el hashCode debe ser el mismo.
+        assertEquals(instance.hashCode(), instance2.hashCode());
         // Un hashcode siempre debe ser mayor a 0.
         assertNotEquals(0, empty.hashCode());
     }
