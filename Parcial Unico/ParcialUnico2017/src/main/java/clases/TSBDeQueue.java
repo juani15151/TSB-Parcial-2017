@@ -19,16 +19,18 @@ import java.util.NoSuchElementException;
  */
 public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Serializable, Cloneable {
 
-    private Object[] items;
-    private int size;
+    private static final int DEFAULT_ARRAY_LENGHT = 10;
+    
+    protected Object[] items;
+    protected int size;
 
     public TSBDeQueue() {
-        this(10);
+        this(DEFAULT_ARRAY_LENGHT);
     }
 
     public TSBDeQueue(int initialCapacity) {
         if (initialCapacity <= 0) {
-            initialCapacity = 10;
+            initialCapacity = DEFAULT_ARRAY_LENGHT;
         }
         items = new Object[initialCapacity];
         size = 0;
@@ -145,7 +147,9 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
      */
     private void checkFreeSpace() {
         if (items.length == size * 2) {
-            setCapacity(size);
+            if(size > DEFAULT_ARRAY_LENGHT){
+                setCapacity(size);
+            }            
         }
     }
 
