@@ -39,6 +39,11 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
         size = c.size();
     }
 
+    @Override
+    public int size() {
+        return size;
+    }
+    
     /**
      * Agrega el elemento especificado al final de la cola.
      *
@@ -51,17 +56,7 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
     public boolean add(E e) {
         addLast(e);
         return true;
-    }
-
-    @Override
-    public Iterator<E> iterator() {
-        return new AscendingIterator();
-    }
-
-    @Override
-    public int size() {
-        return size;
-    }
+    }   
 
     @Override
     public void addFirst(E e) {
@@ -138,7 +133,8 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
         if (size == 0) {
             throw new NoSuchElementException();
         }
-        E old = (E) items[size--];
+        E old = (E) items[size - 1];
+        size--;
         checkFreeSpace();
         return old;
     }
@@ -279,11 +275,6 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
     }
 
     @Override
-    public Iterator<E> descendingIterator() {
-        return new DescendingIterator();
-    }
-
-    @Override
     protected Object clone() throws CloneNotSupportedException {
         TSBDeQueue<E> copy = (TSBDeQueue<E>) super.clone(); //To change body of generated methods, choose Tools | Templates.
         copy.items = new Object[items.length];
@@ -319,6 +310,16 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
         return hash;
     }   
 
+    @Override
+    public Iterator<E> iterator() {
+        return new AscendingIterator();
+    }    
+    
+    @Override
+    public Iterator<E> descendingIterator() {
+        return new DescendingIterator();
+    }
+    
     private class AscendingIterator<E> implements Iterator<E> {
 
         int nextItemIndex;
@@ -379,7 +380,7 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
 
         @Override
         public boolean hasNext() {
-            return currentItemIndex != 0;
+            return nextItemIndex >= 0;
         }
 
         @Override
