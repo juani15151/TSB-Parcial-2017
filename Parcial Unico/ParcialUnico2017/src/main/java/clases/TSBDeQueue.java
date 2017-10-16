@@ -373,6 +373,7 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
             }
             removeAt(currentItemIndex);
             currentItemIndex = -1;
+            nextItemIndex--;
             expectedModCount++;
         }
 
@@ -416,6 +417,7 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
             }
             removeAt(currentItemIndex);
             currentItemIndex = -1;
+            nextItemIndex--;
             expectedModCount++;
         }
 
