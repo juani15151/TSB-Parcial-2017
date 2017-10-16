@@ -19,8 +19,8 @@ import java.util.NoSuchElementException;
  */
 public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Serializable, Cloneable {
 
-    private static final int DEFAULT_ARRAY_LENGHT = 10;
-    
+    private static final int DEFAULT_ARRAY_LENGHT = 16;
+
     protected Object[] items;
     protected int size;
 
@@ -45,7 +45,7 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
     public int size() {
         return size;
     }
-    
+
     /**
      * Agrega el elemento especificado al final de la cola.
      *
@@ -58,35 +58,43 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
     public boolean add(E e) {
         addLast(e);
         return true;
-    }   
+    }
 
     @Override
     public void addFirst(E e) {
-        if (e == null) {
-            throw new NullPointerException();
-        }
+        exceptOnNull(e);
         // TODO: Para optimizar: Si hay que agrandar el arreglo se hacen 2
         //       llamadas a System.arraycopy seguidas.
-        ensureAdd();
+        ensureAddCapacity();
         System.arraycopy(items, 0, items, 1, size++);
         items[0] = e;
     }
 
     @Override
     public void addLast(E e) {
-        if (e == null) {
+        exceptOnNull(e);
+        ensureAddCapacity();
+        items[size++] = e;
+    }
+    
+    private void exceptOnNull(Object o){
+        if (o == null){
             throw new NullPointerException();
         }
-
-        ensureAdd();
-        items[size++] = e;
+    }
+    
+    public void ensureCapacity(int minCapacity) {
+        if (items.length >= minCapacity) {
+            return;
+        }
+        setCapacity(minCapacity);
     }
 
     /**
      * Asegura que haya espacio para agregar un elemento. Si no lo hay agranda
      * el array de items.
      */
-    private void ensureAdd() {
+    private void ensureAddCapacity() {
         if (size == items.length) {
             setCapacity(items.length * 2);
         }
@@ -96,13 +104,13 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
      * Aumenta o disminuye el tamaño del array de items. Si la capacidad
      * solicitada es menor que la cantidad de elementos actual no hace nada.
      *
-     * @param capacity - la capacidad solicitada
+     * @param newCapacity - la capacidad solicitada
      */
-    private void setCapacity(int capacity) {
-        if (capacity < size) {
+    private void setCapacity(int newCapacity) {
+        if (newCapacity < size) {
             return;
         }
-        Object[] replacement = new Object[capacity];
+        Object[] replacement = new Object[newCapacity];
         System.arraycopy(items, 0, replacement, 0, size);
         items = replacement;
     }
@@ -126,7 +134,7 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
         }
         E old = (E) items[0];
         System.arraycopy(items, 1, items, 0, --size);
-        checkFreeSpace();
+        trimCapacity();
         return old;
     }
 
@@ -137,19 +145,20 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
         }
         E old = (E) items[size - 1];
         size--;
-        checkFreeSpace();
+        trimCapacity();
         return old;
     }
 
     /**
-     * Controla que no se desperdicie memoria. Si el array items es muy grande,
-     * comparado con la cantidad de elementos que contiene, se lo reduce.
+     * Si hay mucho espacio vacio reduce el array. Cuando el array items es muy
+     * grande, comparado con la cantidad de elementos que contiene, se lo
+     * reduce.
      */
-    private void checkFreeSpace() {
-        if (items.length == size * 2) {
-            if(size > DEFAULT_ARRAY_LENGHT){
-                setCapacity(size);
-            }            
+    private void trimCapacity() {
+        if (items.length >= size * 2) {
+            if (size > DEFAULT_ARRAY_LENGHT) {
+                setCapacity(size + (int) (DEFAULT_ARRAY_LENGHT / 2));
+            }
         }
     }
 
@@ -279,8 +288,8 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
     }
 
     @Override
-    protected Object clone() throws CloneNotSupportedException {
-        TSBDeQueue<E> copy = (TSBDeQueue<E>) super.clone(); //To change body of generated methods, choose Tools | Templates.
+    public Object clone() throws CloneNotSupportedException {
+        TSBDeQueue<E> copy = (TSBDeQueue<E>) super.clone();
         copy.items = new Object[items.length];
         System.arraycopy(items, 0, copy.items, 0, size);
         return copy;
@@ -312,18 +321,18 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
         hash = 37 * hash + Arrays.deepHashCode(this.items);
         hash = 37 * hash + this.size;
         return hash;
-    }   
+    }
 
     @Override
     public Iterator<E> iterator() {
         return new AscendingIterator();
-    }    
-    
+    }
+
     @Override
     public Iterator<E> descendingIterator() {
         return new DescendingIterator();
     }
-    
+
     private class AscendingIterator<E> implements Iterator<E> {
 
         int nextItemIndex;
@@ -413,5 +422,5 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
             expectedSize--;
         }
 
-    }
+    }    
 }
