@@ -155,7 +155,12 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
      */
     private void removeAt(int index) {
         requireValidIndex(index);
-        System.arraycopy(items, index + 1, items, index, --size - index);
+        if(index == size - 1){
+            items[index] = null;
+        } else {
+            System.arraycopy(items, index + 1, items, index, size - 1 - index);
+        }
+        size--;
         modCount++;
         trimCapacity();
     }
@@ -310,9 +315,14 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
         if (this.size != other.size) {
             return false;
         }
-        if (!Arrays.deepEquals(this.items, other.items)) {
-            return false;
-        }
+        
+        Iterator it = iterator();
+        Iterator otherIt = other.iterator();
+        while(it.hasNext()){
+            if(it.next() != otherIt.next()){
+                return false;
+            }
+        }        
         return true;
     }     
 
@@ -417,7 +427,6 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
             }
             removeAt(currentItemIndex);
             currentItemIndex = -1;
-            nextItemIndex--;
             expectedModCount++;
         }
 
