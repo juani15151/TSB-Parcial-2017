@@ -13,7 +13,7 @@ import java.util.NoSuchElementException;
  * Implementacion propia de java.util.ArrayDeque.
  *
  * No admite null.
- * No detecta overflows cuando el tamaño de la cola crece demasiado.
+ * TODO: No detecta overflows cuando el tamaño de la cola crece demasiado.
  * 
  * @author juani
  * @param <E>
@@ -297,23 +297,24 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
 
     @Override
     public boolean equals(Object obj) {
-        if (obj.getClass() == this.getClass()) {
-            TSBDeQueue<?> other = (TSBDeQueue<?>) obj;
-            if (size != other.size) {
-                return false;
-            }
-            for (int i = 0; i < size; i++) {
-                if (size != other.size) {
-                    throw new ConcurrentModificationException();
-                }
-                if (!items[i].equals(other.items[i])) {
-                    return false;
-                }
-            }
+        if (this == obj) {
             return true;
         }
-        return false;
-    }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final TSBDeQueue<?> other = (TSBDeQueue<?>) obj;
+        if (this.size != other.size) {
+            return false;
+        }
+        if (!Arrays.deepEquals(this.items, other.items)) {
+            return false;
+        }
+        return true;
+    }     
 
     @Override
     public int hashCode() {
