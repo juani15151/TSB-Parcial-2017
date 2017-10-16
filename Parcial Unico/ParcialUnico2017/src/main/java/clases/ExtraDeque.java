@@ -36,6 +36,7 @@ public class ExtraDeque<E> extends TSBDeQueue<E> implements Serializable {
     }
 
     private void ordenar(int izq, int der) {
+        // TODO: Hacer que incremente el modCount en cada modificacion.
         // Nota: Puede que falle siempre, en ese caso hay que dejarlo como
         //      object[] y castear el x e y a Comparable.
         Comparable[] v = (Comparable[]) items;
@@ -55,7 +56,6 @@ public class ExtraDeque<E> extends TSBDeQueue<E> implements Serializable {
                 v[j] = y;
                 i++;
                 j--;
-                modCount++;
             }
         } while (i <= j);
         if (izq < j) {
