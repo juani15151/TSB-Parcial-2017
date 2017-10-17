@@ -294,6 +294,9 @@ public class TSBDeQueueTest {
         assertTrue(instance.removeFirstOccurrence(7));
         assertFalse(instance.removeFirstOccurrence(99));
         assertFalse(empty.removeFirstOccurrence(10));
+        // Extra.
+        assertFalse(instance.removeFirstOccurrence(null));
+        assertFalse(instance.removeFirstOccurrence("Random"));
         // Controla que se haya eliminado el primer 7 y no otro.
         Iterator it = instance.iterator();
         it.next();
@@ -311,6 +314,9 @@ public class TSBDeQueueTest {
         assertTrue(instance.removeLastOccurrence(7));
         assertFalse(instance.removeLastOccurrence(99));
         assertFalse(empty.removeLastOccurrence(10));
+        // Extra.
+        assertFalse(instance.removeLastOccurrence(null));
+        assertFalse(instance.removeLastOccurrence("Random"));
         // Controla que no se haya eliminado el primer 7
         Iterator it = instance.iterator();
         it.next();
