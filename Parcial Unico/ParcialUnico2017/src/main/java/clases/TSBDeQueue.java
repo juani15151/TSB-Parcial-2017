@@ -63,7 +63,19 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
         modCount++;
         items[index] = element;
     }
-
+    
+    // METODOS DEL PARCIAL - TURNO TARDE
+    public int checkDuplicates(E e){
+        requireNotNull(e);
+        int count = 0;
+        Iterator i = iterator();
+        while(i.hasNext()){
+            if(e.equals(i.next())) count++;
+        }
+        return count;
+    }
+    
+    
     /**
      * Agrega el elemento especificado al final de la cola.
      *
@@ -344,95 +356,7 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
     public Iterator<E> descendingIterator() {
         return new StepIterator(-1);
     }
-    
-    private class AscendingIterator<E> implements Iterator<E> {
-
-        int nextItemIndex;
-        int currentItemIndex;
-        int expectedModCount;
-
-        public AscendingIterator() {
-            nextItemIndex = 0;
-            currentItemIndex = -1;
-            expectedModCount = modCount;
-        }
-
-        @Override
-        public boolean hasNext() {
-            // Si llega a size ya se pasó y no incrementará más.
-            return nextItemIndex != size;
-        }
-
-        @Override
-        public E next() {
-            if (nextItemIndex == size) {
-                throw new NoSuchElementException();
-            }
-            if (modCount != expectedModCount) {
-                throw new ConcurrentModificationException();
-            }
-            currentItemIndex = nextItemIndex++;
-            return (E) items[currentItemIndex];
-        }
-
-        @Override
-        public void remove() {
-            if (currentItemIndex == -1) {
-                // Ocurre cuando se invoca a remove() antes que next()
-                // o cuando se invoca remove() 2 veces seguidas.
-                throw new IllegalStateException();
-            }
-            removeAt(currentItemIndex);
-            currentItemIndex = -1;
-            nextItemIndex--;
-            expectedModCount++;
-        }
-
-    }
-
-    private class DescendingIterator<E> implements Iterator<E> {
-
-        int currentItemIndex;
-        int nextItemIndex;
-        int expectedModCount;
-
-        public DescendingIterator() {
-            currentItemIndex = -1;
-            nextItemIndex = size - 1;
-            expectedModCount = modCount;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return nextItemIndex >= 0;
-        }
-
-        @Override
-        public E next() {
-            if (currentItemIndex == 0) {
-                throw new NoSuchElementException();
-            }
-            if (modCount != expectedModCount) {
-                throw new ConcurrentModificationException();
-            }
-            currentItemIndex = nextItemIndex--;
-            return (E) items[currentItemIndex];
-        }
-
-        @Override
-        public void remove() {
-            if (currentItemIndex == -1) {
-                // Ocurre cuando se invoca a remove() antes que next()
-                // o cuando se invoca remove() 2 veces seguidas.
-                throw new IllegalStateException();
-            }
-            removeAt(currentItemIndex);
-            currentItemIndex = -1;
-            expectedModCount++;
-        }
-
-    }
-    
+   
     private class StepIterator<E> implements Iterator<E> {
 
         int nextItemIndex;
@@ -481,5 +405,58 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
             if(step > 0) nextItemIndex--;
             expectedModCount++;
         }
+    }
+    
+    public Iterator oddIndexIterator(){
+        return new OddIndexIterator();
+    }
+    
+    private class OddIndexIterator<E> implements Iterator<E>{
+       int nextItemIndex;
+        int currentItemIndex;
+        int expectedModCount;
+
+        public OddIndexIterator() {            
+            nextItemIndex = 1;
+            currentItemIndex = -1;
+            expectedModCount = modCount;            
+        }
+
+        @Override
+        public boolean hasNext() {
+            // Si llega a size ya se pasó y no incrementará más.
+            return nextItemIndex < size;
+        }
+
+        @Override
+        public E next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+            if (modCount != expectedModCount) {
+                throw new ConcurrentModificationException();
+            }            
+            currentItemIndex = nextItemIndex;
+            nextItemIndex += 2;
+            return (E) items[currentItemIndex];
+        }
+
+        @Override
+        public void remove() {
+            if (currentItemIndex == -1) {
+                // Ocurre cuando se invoca a remove() antes que next()
+                // o cuando se invoca remove() 2 veces seguidas.
+                throw new IllegalStateException();
+            }
+            removeAt(currentItemIndex);
+            currentItemIndex = -1;
+            // Al borrar un elemento se corren todos los indices 1 lugar a la izquierda,
+            // entonces los siguientes impares pasan a ser pares, actualemente se
+            // retornan los nuevos impares.
+            // Para evitar ese comportamiento descomente la siguiente linea.
+             nextItemIndex--;
+            expectedModCount++;
+        }
+        
     }
 }

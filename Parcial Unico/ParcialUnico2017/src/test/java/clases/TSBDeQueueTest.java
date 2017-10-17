@@ -66,6 +66,23 @@ public class TSBDeQueueTest {
         cola = new TSBDeQueue(data);
         assertEquals(2, cola.size());
     }
+    
+    /**
+     * Test del nuevo iterador OddIndexIterator.
+     * Diseñado en el parcial.
+     */
+    @org.junit.Test
+    public void testOddIndexIterator() {
+        Iterator it = instance.oddIndexIterator();
+        assertNotNull(it);
+        assertTrue(it.hasNext());
+        assertEquals((Integer) 5, it.next());
+        assertEquals((Integer) 6, it.next());
+        it.remove();
+        assertEquals((Integer) 7, it.next());
+        assertEquals((Integer) 11, it.next());
+        assertFalse(it.hasNext());
+    }
 
     /**
      * Test of add method, of class TSBDeQueue.
@@ -415,13 +432,13 @@ public class TSBDeQueueTest {
         assertNotEquals(null, r1.next());
         r1.remove();
         assertEquals(as - 1, instance.size());
-        // Next luego de un remove no se debe saltear elementos.
+        // Next luego de un remove no se debe saltear elementos.        
         assertEquals((Integer) 8, r1.next());
         // Opcional. 2 invocaciones seguida de remove deben fallar.
         try {
             r1.remove();
             r1.remove(); // Debe lanzar la excepcion aqui.
-            fail(); 
+            fail("Debia lanzarse una excepcion IllegalStateException"); 
         } catch (IllegalStateException e) {
             // Ok
         }
