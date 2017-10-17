@@ -7,9 +7,13 @@ package clases;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.IntStream;
 
 /**
  *
@@ -66,36 +70,18 @@ public class Principal {
         return list;
     }
 
-    public static int primerPrimo(TSBDeQueue d) {
-        throw new UnsupportedOperationException();
-    }
-
-    private static boolean esPrimo(int num) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static int promedio(TSBDeQueue d) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static int mediana(TSBDeQueue d) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static int maximo(TSBDeQueue d) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static int minimo(TSBDeQueue d) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static long inversiones(TSBDeQueue d) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static long sumaMaxima(TSBDeQueue d) {
-        throw new UnsupportedOperationException();
+    /**
+     * Genera un arreglo de numeros aleatorios
+     * @param min - valor minimo de los numeros generados, incluyente.
+     * @param max - valor maximo de los numeros generados, excluyente.
+     * @param amount - la cantidad de numeros aleatorios a generar
+     * @return 
+     */
+    public static ArrayList<Integer> generateRandom(int min, int max, int amount){
+        ArrayList<Integer> numeros = new ArrayList<>(amount);
+        // Java 8
+        new Random().ints(amount, min, max).forEach(value -> numeros.add(value));
+        return numeros;
     }
 
 }

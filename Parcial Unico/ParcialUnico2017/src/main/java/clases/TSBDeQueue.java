@@ -153,7 +153,7 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
      * Elimina el elemento en la posicion indicada y reacomoda el arreglo.
      * @param index - el indice del elemento a eliminar.
      */
-    private void removeAt(int index) {
+    protected void removeAt(int index) {
         requireValidIndex(index);
         if(index == size - 1){
             items[index] = null;
@@ -337,14 +337,14 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
 
     @Override
     public Iterator<E> iterator() {
-        return new AscendingIterator();
+        return new StepIterator(1);
     }
 
     @Override
     public Iterator<E> descendingIterator() {
-        return new DescendingIterator();
+        return new StepIterator(-1);
     }
-
+    
     private class AscendingIterator<E> implements Iterator<E> {
 
         int nextItemIndex;
@@ -431,5 +431,55 @@ public class TSBDeQueue<E> extends AbstractCollection<E> implements Deque<E>, Se
             expectedModCount++;
         }
 
+    }
+    
+    private class StepIterator<E> implements Iterator<E> {
+
+        int nextItemIndex;
+        int currentItemIndex;
+        int expectedModCount;
+        final int step;
+
+        public StepIterator(int step) {            
+            if(step == 0){
+                throw new IllegalArgumentException("Step no puede ser cero.");
+            }
+            nextItemIndex = step > 0 ? 0 : size - 1;
+            currentItemIndex = -1;
+            expectedModCount = modCount;            
+            this.step = step;
+        }
+
+        @Override
+        public boolean hasNext() {
+            // Si llega a size ya se pasó y no incrementará más.
+            return step > 0 ? nextItemIndex < size : nextItemIndex >= 0;
+        }
+
+        @Override
+        public E next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
+            if (modCount != expectedModCount) {
+                throw new ConcurrentModificationException();
+            }            
+            currentItemIndex = nextItemIndex;
+            nextItemIndex += step;
+            return (E) items[currentItemIndex];
+        }
+
+        @Override
+        public void remove() {
+            if (currentItemIndex == -1) {
+                // Ocurre cuando se invoca a remove() antes que next()
+                // o cuando se invoca remove() 2 veces seguidas.
+                throw new IllegalStateException();
+            }
+            removeAt(currentItemIndex);
+            currentItemIndex = -1;
+            if(step > 0) nextItemIndex--;
+            expectedModCount++;
+        }
     }
 }
